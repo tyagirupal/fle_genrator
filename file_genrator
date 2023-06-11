@@ -1,0 +1,199 @@
+HTML
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet" href="style.css" />
+
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>File Converter</title>
+
+    <!-- style sheet link  -->
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="main_section" id="main_section"
+    style="
+    height: 500px">
+      <div class="box1"style="
+      height: 500px
+      style="
+    padding-top: 100px;
+    padding-right: 200px;
+    padding-bottom: 100px;
+    padding-left: 100px;
+    margin-right: 50px;
+    margin-left: 50px;" >
+    <h1 style="
+    height: 70px;
+    width: 500px;
+    padding-right: 50px;     
+    ">
+ Convert PDF to Word 
+        </h1>
+        <div class="file_input">
+          <label for="filename" class="file_label" >Select PDF File</label>
+          <input
+            type="file"
+            name="file"
+            id="filename"
+            accept="application/pdf"
+            required style="
+            border-top-width: 5px;
+            border-bottom-width: 5px;
+            border-right-width: 5px;
+            border-left-width: 5px;
+            margin-top: 70px">
+          </input>
+          
+        </div>
+        
+        <button id="Convert_btn" onclick="btn()" >    Convert To Word File</button>
+        <button button id="Clear_btn" onclick="btn()" style="
+        margin-left: 30px;"> clear </button>
+      </div>
+        
+     
+      <div class="bottom">
+        <div  style="height: 10vh;"></div>
+    
+    </div>   
+          </div>
+    <script src="script.js"></script>
+    <div>
+      <hr size="8"    color="black">
+      <footer id="footer"><br> <br>
+          <p align="center" style="font-size:20px" style="
+          height: 50px;
+          padding-bottom: 70px;
+      "> &copy; Temperature converter , Thanmai Dindigala</p>
+        </footer>
+          </div>
+  </body>
+</html>
+
+CSS
+
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap");
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Montserrat", sans-serif;
+  background-color: #e499f5;
+}
+
+.main_section {
+  background-color: rgba(245, 221, 143, 0.641);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+h1 {
+  font-size: 40px;
+}
+.box1 {
+  background-color: rgb(209, 236, 238);
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  margin: 20px;
+  max-width: 600px;
+  width: 100%;
+  border: 2px solid rgb(43, 47, 240);
+}
+
+#filename {
+  padding: 10px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+#Convert_btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: rgb(223, 50, 50);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+}
+#Clear_btn {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: rgb(63, 217, 223);
+}
+#Convert_btn:hover {
+  background-color: #b30000;
+}
+
+JAVASCRIPT
+
+const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const libre = require("libreoffice-convert");
+const { promisify } = require("util");
+const app = express();
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    if (ext !== ".pdf") {
+      return cb(new Error("Only PDF files are allowed"));
+    }
+    cb(null, true);
+  }
+}).single("file");
+
+app.post("/convert", (req, res) => {
+  upload(req, res, function (err) {
+    if (err) {
+      return res.status(400).json({ message: err.message });
+    }
+
+    const filePath = req.file.path;
+    const options = {
+      output: path.join(
+        __dirname,
+        "downloads",
+        `${req.file.originalname}.docx`
+      ),
+      jsonFilePath: "C:\\ECHO\\JAVASCRIPT\\code alpha\\File Converter\\3.json"
+    };
+
+    libre
+      .convertAsync(filePath, options)
+      .then((outputPath) => {
+        res.download(outputPath);
+      })
+      .catch((err) => {
+        console.error(err);
+        res.status(500).json({ message: "Internal server error" });
+      });
+  });
+});
+
+app.listen(3000, () => {
+  console.log("Server started on port 3000");
+})
